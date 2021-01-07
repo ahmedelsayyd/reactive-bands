@@ -6,6 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { map, mergeMap, startWith } from 'rxjs/operators';
 import { merge } from 'rxjs/observable/merge';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-band-list',
@@ -14,20 +15,31 @@ import { merge } from 'rxjs/observable/merge';
 export class BandListComponent {
   refreshDataClickSubject = new Subject();
 
-  model$: Observable<{ bands: Band[], isLoading: boolean }>;
+  model$: Observable<{bands: Band[], isLoading: boolean}>;
+  //model$: Observable<Band[]>;
 
   constructor(private bandDataService: BandDataService) {
-    const refreshDataClick$ = this.refreshDataClickSubject.asObservable();
+
+    const refreshDataClick$ = this.refreshDataClickSubject.asObservable()
+    
     const refreshTrigger$ = refreshDataClick$.pipe(
       startWith({})
     );
-    const bandList$ = refreshTrigger$.pipe(
-      mergeMap(() => this.bandDataService.getBands())
-    );
+  
+     const bandList$ = refreshTrigger$.pipe(
+       mergeMap(() => this.bandDataService.getBands())
+     );
 
-    this.model$ = merge(
+     this.model$ = merge(
       refreshTrigger$.pipe(map(() => ({ bands: [], isLoading: true }))),
-      bandList$.pipe(map(bands => ({ bands: bands, isLoading: false }))),
-    );   
+       bandList$.pipe(map(bands => ({ bands: bands, isLoading: false }))),
+     )
+
+
+
+    // this.model$ = refreshDataClick$.pipe(
+    //   startWith({}),
+    //   mergeMap(() => this.bandDataService.getBands())
+    // ) 
   }
 }
